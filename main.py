@@ -7,20 +7,32 @@ import pyautogui
 from PIL import Image
 
 
-from core import solve
+from core import solve, GameField
+
+GCOL = "\033[92m"  # gray
+DCOL = "\033[39m"  # default
 
 
-# time.sleep(1.5)
+def print_game_field(field: GameField):
+	for ys in ((0, 1, 2), (3, 4, 5), (6, 7, 8)):
+		for y in ys:
+			for xs in ((0, 1, 2), (3, 4, 5), (6, 7, 8)):
+				for x in xs:
+					print(f"{GCOL}[{DCOL}{field[y][x]}{GCOL}]{DCOL}", end="")
+				print(" ", end="")
+			print()
+		print()
 
-# slop_region = list(map(int, os.popen('slop').read().replace('x', '+').strip().split('+')))
-# width, height, x, y = tuple(slop_region)
 
-# image = pyautogui.screenshot()
-# image = image.crop((x, y, x+width, y+height))
+time.sleep(1.5)
 
-image = Image.open('image.png')
+slop_region = list(map(int, os.popen('slop').read().replace('x', '+').strip().split('+')))
+width, height, x, y = tuple(slop_region)
 
-left, width, top, height = 0, image.size[0], 0, image.size[1]
+image = pyautogui.screenshot()
+image = image.crop((x, y, x+width, y+height))
+
+left, right, top, bottom = 0, image.size[0], 0, image.size[1]
 for x in range(image.size[0]):
 	px = image.getpixel((x, image.size[1] // 2))
 	if sum(px) < 250:
@@ -31,7 +43,7 @@ for x in reversed(range(image.size[0])):
 	px = image.getpixel((x, image.size[1] // 2))
 	if sum(px) < 250:
 		break
-	width -= 1
+	right -= 1
 
 for y in range(image.size[1]):
 	px = image.getpixel((image.size[0] // 2, y))
@@ -43,9 +55,9 @@ for y in reversed(range(image.size[1])):
 	px = image.getpixel((image.size[0] // 2, y))
 	if sum(px) < 250:
 		break
-	height -= 1
+	bottom -= 1
 
-image = image.crop((left, top, width, height))
+image = image.crop((left, top, right, bottom))
 
 game_field = [[' ' for _ in range(9)] for _ in range(9)]
 
@@ -62,13 +74,12 @@ for rix in range(9):
 			game_field[riy][rix] = text
 
 
-
-print("-"*18, "NOT SOLVED", "-"*18)
-pp(game_field)
+print(f"{GCOL}PARSED:{DCOL}")
+print_game_field(game_field)
 print()
 
 solve(game_field)
 
-print("-"*20, "SOLVED", "-"*20)
-pp(game_field)
+print(f"{GCOL}SOLVED:{DCOL}")
+print_game_field(game_field)
 

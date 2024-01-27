@@ -10,42 +10,77 @@ def count_numbers(field: GameField) -> int:
 	return result
 
 
-def awailable_number(not_awailable_numbers: set[int]) -> int:
-	for i in range(1, 10):
-		if i not in not_awailable_numbers:
-			return i
+def get_awailable_numbers(field: GameField, main_x: int, main_y: int) -> set[int]:
+	if field[main_y][main_x].isdigit():
+		return {int(field[main_y][main_x])}
+
+	result = set(range(1, 10))
+
+	for x in range(len(field[0])):
+		symbol = field[main_y][x]
+		if symbol.isdigit() and int(symbol) in result:
+			result.remove(int(symbol))
+
+	for y in range(len(field)):
+		symbol = field[y][main_x]
+		if symbol.isdigit() and int(symbol) in result:
+			result.remove(int(symbol))
+
+	for y in range(main_y // 3 * 3, main_y // 3 * 3 + 3):
+		for x in range(main_x // 3 * 3, main_x // 3 * 3 + 3):
+			symbol = field[y][x]
+			if symbol.isdigit() and int(symbol) in result:
+				result.remove(int(symbol))
+
+	return result
 
 
 def solve_step(field: GameField):
+	awailable_numbers = [[get_awailable_numbers(field, x, y) for x in range(len(field[y]))] for y in range(len(field))]
+
 	for main_y in range(len(field)):
-		for main_x in range(len(field[0])):
+		for main_x in range(len(field[main_y])):
+			current_awailable_numbers = awailable_numbers[main_y][main_x]
+
 			if field[main_y][main_x].isdigit():
 				continue
 
-			not_awailable_numbers = set()
+			if len(current_awailable_numbers) == 1 and not field[main_y][main_x].isdigit():
+				field[main_y][main_x] = str(sum(current_awailable_numbers))
+				return
 
-			for x in range(len(field[0])):
-				symbol = field[main_y][x]
-				if symbol.isdigit():
-					not_awailable_numbers.add(int(symbol))
+			for number in current_awailable_numbers:
+				finded_count = 0
+				for search_numbers in awailable_numbers[main_y]:
+					if number in search_numbers:
+						finded_count += 1
+				if finded_count < 2:
+					field[main_y][main_x] = str(number)
+					return
 
-			for y in range(len(field)):
-				symbol = field[y][main_x]
-				if symbol.isdigit():
-					not_awailable_numbers.add(int(symbol))
+			for number in current_awailable_numbers:
+				finded_count = 0
+				for y in range(len(awailable_numbers)):
+					search_numbers = awailable_numbers[y][main_x]
+					if number in search_numbers:
+						finded_count += 1
+				if finded_count < 2:
+					field[main_y][main_x] = str(number)
+					return
 
-			for y in range(main_y // 3 * 3, main_y // 3 * 3 + 3):
-				for x in range(main_x // 3 * 3, main_x // 3 * 3 + 3):
-					symbol = field[y][main_x]
-					if symbol.isdigit():
-						not_awailable_numbers.add(int(symbol))
+			for number in current_awailable_numbers:
+				finded_count = 0
+				for y in range(main_y // 3 * 3, main_y // 3 * 3 + 3):
+					for x in range(main_x // 3 * 3, main_x // 3 * 3 + 3):
+						search_numbers = awailable_numbers[y][x]
+						if number in search_numbers:
+							finded_count += 1
+				if finded_count < 2:
+					field[main_y][main_x] = str(number)
+					return
 
-			if len(not_awailable_numbers) == 8:
-				field[main_y][main_x] = str(awailable_number(not_awailable_numbers))
 
-
-
-def solve(field: GameField) -> GameField:
+def solve(field: GameField):
 	while 1:
 		count_before = count_numbers(field)
 		solve_step(field)
@@ -53,6 +88,5 @@ def solve(field: GameField) -> GameField:
 
 		if count_before == count_after:
 			break
-
 
 
