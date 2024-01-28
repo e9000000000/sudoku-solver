@@ -34,25 +34,25 @@ image = image.crop((x, y, x+width, y+height))
 left, right, top, bottom = 0, image.size[0], 0, image.size[1]
 for x in range(image.size[0]):
 	px = image.getpixel((x, image.size[1] // 2))
-	if sum(px) < 250:
+	if px != image.getpixel((0, image.size[1] // 2)):
 		break
 	left += 1
 
 for x in reversed(range(image.size[0])):
 	px = image.getpixel((x, image.size[1] // 2))
-	if sum(px) < 250:
+	if px != image.getpixel((image.size[0] - 1, image.size[1] // 2)):
 		break
 	right -= 1
 
 for y in range(image.size[1]):
 	px = image.getpixel((image.size[0] // 2, y))
-	if sum(px) < 250:
+	if px != image.getpixel((image.size[0] // 2, 0)):
 		break
 	top += 1
 
 for y in reversed(range(image.size[1])):
 	px = image.getpixel((image.size[0] // 2, y))
-	if sum(px) < 250:
+	if px != image.getpixel((image.size[0] // 2, image.size[1] - 1)):
 		break
 	bottom -= 1
 
