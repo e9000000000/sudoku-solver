@@ -1,4 +1,4 @@
-from functools import reduce
+import copy
 
 
 GameField = list[list[str]]
@@ -38,73 +38,8 @@ def get_awailable_numbers(field: GameField, main_x: int, main_y: int) -> set[int
     return result
 
 
-def get_all_dependencies(all_awailable_numbers: list[list[set]], main_x: int, main_y: int) -> set[tuple[int]]:
-    main_numbers = all_awailable_numbers[main_y][main_x]
-    result = set()
-
-    for x in range(len(all_awailable_numbers[0])):
-        numbers = all_awailable_numbers[main_y][x]
-        if len(numbers) > 1 and len(numbers & main_numbers) > 0:
-            result.add((x, main_y))
-
-    for y in range(len(all_awailable_numbers)):
-        numbers = all_awailable_numbers[y][main_x]
-        if len(numbers) > 1 and len(numbers & main_numbers) > 0:
-            result.add((main_x, y))
-
-    for y in range(main_y // 3 * 3, main_y // 3 * 3 + 3):
-        for x in range(main_x // 3 * 3, main_x // 3 * 3 + 3):
-            numbers = all_awailable_numbers[y][x]
-            if len(numbers) > 1 and len(numbers & main_numbers) > 0:
-                result.add((x, y))
-    return result
-
-
-def remove_numbers_with_xy_wing(all_awailable_numbers: list[list[set[int]]]):
-    all_dependencies = {}
-    
-    for y in range(len(all_awailable_numbers)):
-        for x in range(len(all_awailable_numbers[y])):
-            if len(all_awailable_numbers[y][x]) == 1:
-                continue
-            all_dependencies[(x, y)] = get_all_dependencies(all_awailable_numbers, x, y)
-
-    for main_cell, main_cell_deps in all_dependencies.items():
-        reversed_deps: dict[tuple, set[tuple[int]]] = {}
-        for dep_cell in main_cell_deps:
-            deps_of_dep = {d for d in all_dependencies[dep_cell] if d not in  [main_cell, *main_cell_deps]}
-            for dep in deps_of_dep:
-                if dep not in reversed_deps:
-                    reversed_deps[dep] = set()
-                reversed_deps[dep].add(dep_cell)
-
-        for fork_cell, rev_deps in reversed_deps.items():
-            main_x, main_y = main_cell[0], main_cell[1]
-
-            fork_cell_numbers = all_awailable_numbers[fork_cell[1]][fork_cell[0]]
-            if len(fork_cell_numbers) != 2:
-                continue
-
-            all_rev_deps_numbers = [all_awailable_numbers[c[1]][c[0]] for c in rev_deps]
-            all_companions = {}
-            for numbers in all_rev_deps_numbers:
-                if len(numbers) != 2:
-                    continue
-                for number in numbers:
-                    if number not in all_companions:
-                        all_companions[number] = set()
-                    all_companions[number].add(sum(numbers.difference({number})))
-                            
-            for number, companions in all_companions.items():
-                if len(companions & fork_cell_numbers) >= 2 and number in all_awailable_numbers[main_y][main_x]:
-                    all_awailable_numbers[main_y][main_x].remove(number)
-
-
 def solve_step(field: GameField):
     awailable_numbers = [[get_awailable_numbers(field, x, y) for x in range(len(field[y]))] for y in range(len(field))]
-
-
-    remove_numbers_with_xy_wing(awailable_numbers)
 
     for main_y in range(len(field)):
         for main_x in range(len(field[main_y])):
@@ -148,11 +83,48 @@ def solve_step(field: GameField):
                     return
 
 
-def solve(field: GameField):
+def minimal_split(field: GameField) -> list[GameField]:
+    min_x = 0
+    min_y = 0
+    min_len = 9999
+    for y in range(len(field)):
+        for x in range(len(field[y])):
+            numbers = get_awailable_numbers(field, x, y)
+            if len(numbers) < min_len and len(numbers) > 1:
+                min_x = x
+                min_y = y
+                min_len = len(numbers)
+
+    variants = []
+    for cell_variant in get_awailable_numbers(field, min_x, min_y):
+        field_variant = copy.deepcopy(field)
+        field_variant[min_y][min_x] = str(cell_variant)
+        variants.append(field_variant)
+    return variants
+
+
+def solve(field: GameField, depth=0):
+    if depth > 6:
+        return
+
+    cell_amount = len(field) * len(field[0])
+
     while 1:
         count_before = count_numbers(field)
         solve_step(field)
         count_after = count_numbers(field)
 
-        if count_before == count_after:
+        if count_after == cell_amount:
             break
+
+        if count_before == count_after:
+            variants = minimal_split(field)
+            for variant in variants:
+                solve(variant, depth=depth+1)
+                if count_numbers(variant) == cell_amount:
+                    # write success variant into our game field
+                    for i in range(len(field)):
+                        field[i] = variant[i]
+                    return
+            break
+
