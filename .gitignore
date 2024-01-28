@@ -3,3 +3,4 @@ __pycache__/
 sudoku-solver.sublime-project
 sudoku-solver.sublime-workspace
 t.py
+pyrightconfig.json

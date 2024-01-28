@@ -1,10 +1,9 @@
 import time
 import os
-from pprint import pp
+import pprint
 
 import pytesseract
 import pyautogui
-from PIL import Image
 
 
 from core import solve, GameField
@@ -68,11 +67,11 @@ for rix in range(9):
 		x = rix * region_width
 		y = riy * region_height
 		current_image = image.crop((x+5, y+5, x+region_width-5, y+region_height-5))
-		# current_image.save(f"{rix}_{riy}.png")
 		text = pytesseract.image_to_string(current_image, config='--psm 6').strip()
 		if text:
 			game_field[riy][rix] = text
 
+pprint.pprint(game_field)
 
 print(f"{GCOL}PARSED:{DCOL}")
 print_game_field(game_field)
