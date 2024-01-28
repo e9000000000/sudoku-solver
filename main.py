@@ -1,6 +1,6 @@
 import time
 import os
-import pprint
+import copy
 
 import pytesseract
 import pyautogui
@@ -25,11 +25,13 @@ def print_game_field(field: GameField):
 
 time.sleep(1.5)
 
-slop_region = list(map(int, os.popen('slop').read().replace('x', '+').strip().split('+')))
-width, height, x, y = tuple(slop_region)
+image_region = list(map(int, os.popen('slop').read().replace('x', '+').strip().split('+')))
+numpad_region = list(map(int, os.popen('slop').read().replace('x', '+').strip().split('+')))
+field_w, field_h, field_x, field_y = tuple(image_region)
+numpad_w, numpad_h, numpad_x, numpad_y = tuple(numpad_region)
 
 image = pyautogui.screenshot()
-image = image.crop((x, y, x+width, y+height))
+image = image.crop((field_x, field_y, field_x+field_w, field_y+field_h))
 
 left, right, top, bottom = 0, image.size[0], 0, image.size[1]
 for x in range(image.size[0]):
@@ -71,8 +73,7 @@ for rix in range(9):
 		if text:
 			game_field[riy][rix] = text
 
-pprint.pprint(game_field)
-
+initial_game_field = copy.deepcopy(game_field)
 print(f"{GCOL}PARSED:{DCOL}")
 print_game_field(game_field)
 print()
@@ -82,3 +83,21 @@ solve(game_field)
 print(f"{GCOL}SOLVED:{DCOL}")
 print_game_field(game_field)
 
+for y in range(len(game_field)):
+    for x in range(len(game_field[y])):
+        if initial_game_field[y][x].isdigit():
+            continue
+
+        pyautogui.click(
+            field_x + left + image.size[0] / 9 * x + image.size[0] / 9 / 2,
+            field_y + top + image.size[1] / 9 * y + image.size[1] / 9 / 2,
+        )
+        time.sleep(0.1)
+        num = int(game_field[y][x])
+        num_x = [0, 1, 2, 0, 1, 2, 0, 1, 2][num - 1]
+        num_y = [0, 0, 0, 1, 1, 1, 2, 2, 2][num - 1]
+        pyautogui.click(
+            numpad_x + numpad_w / 3 * num_x + numpad_w / 3 / 2,
+            numpad_y + numpad_h / 3 * num_y + numpad_h / 3 / 2,
+        )
+        time.sleep(0.1)
