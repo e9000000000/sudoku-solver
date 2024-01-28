@@ -92,7 +92,7 @@ for y in range(len(game_field)):
             field_x + left + image.size[0] / 9 * x + image.size[0] / 9 / 2,
             field_y + top + image.size[1] / 9 * y + image.size[1] / 9 / 2,
         )
-        time.sleep(0.1)
+        time.sleep(0.01)
         num = int(game_field[y][x])
         num_x = [0, 1, 2, 0, 1, 2, 0, 1, 2][num - 1]
         num_y = [0, 0, 0, 1, 1, 1, 2, 2, 2][num - 1]
@@ -100,4 +100,4 @@ for y in range(len(game_field)):
             numpad_x + numpad_w / 3 * num_x + numpad_w / 3 / 2,
             numpad_y + numpad_h / 3 * num_y + numpad_h / 3 / 2,
         )
-        time.sleep(0.1)
+        time.sleep(0.01)
