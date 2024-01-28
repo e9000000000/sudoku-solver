@@ -60,7 +60,7 @@ for y in reversed(range(image.size[1])):
 
 image = image.crop((left, top, right, bottom))
 
-game_field = [[' ' for _ in range(9)] for _ in range(9)]
+game_field = [[0 for _ in range(9)] for _ in range(9)]
 
 region_width = image.size[0] // 9
 region_height = image.size[1] // 9
@@ -71,7 +71,7 @@ for rix in range(9):
 		current_image = image.crop((x+5, y+5, x+region_width-5, y+region_height-5))
 		text = pytesseract.image_to_string(current_image, config='--psm 6').strip()
 		if text:
-			game_field[riy][rix] = text
+			game_field[riy][rix] = int(text)
 
 initial_game_field = copy.deepcopy(game_field)
 print(f"{GCOL}PARSED:{DCOL}")
@@ -85,7 +85,7 @@ print_game_field(game_field)
 
 for y in range(len(game_field)):
     for x in range(len(game_field[y])):
-        if initial_game_field[y][x].isdigit():
+        if initial_game_field[y][x]:
             continue
 
         pyautogui.click(

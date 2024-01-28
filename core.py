@@ -1,7 +1,7 @@
 import copy
 
 
-GameField = list[list[str]]
+GameField = list[list[int]]
 
 
 def count_numbers(field: GameField) -> int:
@@ -14,26 +14,26 @@ def count_numbers(field: GameField) -> int:
 
 
 def get_awailable_numbers(field: GameField, main_x: int, main_y: int) -> set[int]:
-    if field[main_y][main_x].isdigit():
+    if field[main_y][main_x]:
         return {int(field[main_y][main_x])}
 
     result = set(range(1, 10))
 
     for x in range(len(field[0])):
         symbol = field[main_y][x]
-        if symbol.isdigit() and int(symbol) in result:
+        if symbol and symbol in result:
             result.remove(int(symbol))
 
     for y in range(len(field)):
         symbol = field[y][main_x]
-        if symbol.isdigit() and int(symbol) in result:
-            result.remove(int(symbol))
+        if symbol and symbol in result:
+            result.remove(symbol)
 
     for y in range(main_y // 3 * 3, main_y // 3 * 3 + 3):
         for x in range(main_x // 3 * 3, main_x // 3 * 3 + 3):
             symbol = field[y][x]
-            if symbol.isdigit() and int(symbol) in result:
-                result.remove(int(symbol))
+            if symbol and symbol in result:
+                result.remove(symbol)
 
     return result
 
@@ -45,11 +45,11 @@ def solve_step(field: GameField):
         for main_x in range(len(field[main_y])):
             current_awailable_numbers = awailable_numbers[main_y][main_x]
 
-            if field[main_y][main_x].isdigit():
+            if field[main_y][main_x]:
                 continue
 
-            if len(current_awailable_numbers) == 1 and not field[main_y][main_x].isdigit():
-                field[main_y][main_x] = str(sum(current_awailable_numbers))
+            if len(current_awailable_numbers) == 1 and not field[main_y][main_x]:
+                field[main_y][main_x] = sum(current_awailable_numbers)
                 return
 
             for number in current_awailable_numbers:
@@ -58,7 +58,7 @@ def solve_step(field: GameField):
                     if number in search_numbers:
                         finded_count += 1
                 if finded_count < 2:
-                    field[main_y][main_x] = str(number)
+                    field[main_y][main_x] = number
                     return
 
             for number in current_awailable_numbers:
@@ -68,7 +68,7 @@ def solve_step(field: GameField):
                     if number in search_numbers:
                         finded_count += 1
                 if finded_count < 2:
-                    field[main_y][main_x] = str(number)
+                    field[main_y][main_x] = number
                     return
 
             for number in current_awailable_numbers:
@@ -79,7 +79,7 @@ def solve_step(field: GameField):
                         if number in search_numbers:
                             finded_count += 1
                 if finded_count < 2:
-                    field[main_y][main_x] = str(number)
+                    field[main_y][main_x] = number
                     return
 
 
@@ -98,7 +98,7 @@ def minimal_split(field: GameField) -> list[GameField]:
     variants = []
     for cell_variant in get_awailable_numbers(field, min_x, min_y):
         field_variant = copy.deepcopy(field)
-        field_variant[min_y][min_x] = str(cell_variant)
+        field_variant[min_y][min_x] = cell_variant
         variants.append(field_variant)
     return variants
 
